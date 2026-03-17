@@ -65,14 +65,41 @@ class Dog extends Creature {
 
 }
 
+class Gatling extends Creature {
+    constructor() {
+        super("Гатлинг", 6);
+    }
+    attack(gameContext, continuation) {
+        const taskQueue = new TaskQueue();
+
+        const {currentPlayer, oppositePlayer, position, updateView} = gameContext;
+
+        for(const card of oppositePlayer.table) {
+            if (card === null)
+                continue;
+            taskQueue.push(onDone => this.view.showAttack(onDone));
+            taskQueue.push(onDone => {
+                   this.dealDamageToCreature(this.currentPower, card, gameContext, onDone);
+            });
+        }
+
+        taskQueue.continueWith(continuation);
+    };
+}
+
 
 // Колода Шерифа, нижнего игрока.
 const seriffStartDeck = [
     new Duck(),
+    new Gatling(),
     new Duck(),
     new Duck(),
 ];
 const banditStartDeck = [
+    new Dog(),
+    new Dog(),
+    new Gatling(),
+    new Dog(),
     new Dog(),
 ];
 
