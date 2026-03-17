@@ -14,7 +14,6 @@ class Creature extends Card {
             super.getDescriptions()];
     }
 }
-
 // Отвечает является ли карта уткой.
 function isDuck(card) {
     return card && card.quacks && card.swims;
@@ -59,8 +58,8 @@ class Duck extends Creature {
 
 // Основа для собаки.
 class Dog extends Creature {
-    constructor() {
-        super("Пес-бандит", 3);
+    constructor(name="Пес-бандит", maxPower=3) {
+        super(name, maxPower);
     }
 }
 
@@ -71,6 +70,7 @@ class Trasher extends Dog {
         this.currentPower = this.maxPower;
         this.name = 'Громила';
     }
+
 
     modifyTakenDamage(value, fromCard, gameContext, continuation){
         this.view.signalAbility(() => {
@@ -105,6 +105,50 @@ class Gatling extends Creature {
     };
 }
 
+class Lad extends Dog{
+    constructor() {
+        super("Браток", 2);
+    }
+
+    static getBonus() {
+        const count = this.getInGameCount();
+        return count * (count + 1) / 2;
+    }
+    static getInGameCount() {
+        return this.inGameCount || 0;
+    }
+
+    static setInGameCount(value) {
+        this.inGameCount = value;
+    }
+
+    doAfterComingIntoPlay(gameContext, continuation) {
+        const {currentPlayer, oppositePlayer, position, updateView} = gameContext;
+        Lad.setInGameCount(1);
+        continuation();
+    }
+    doBeforeRemoving(continuation) {
+        Lad.setInGameCount(Lad.getInGameCount() - 1);
+        continuation();
+    };
+    modifyDealedDamageToCreature(value, toCard, gameContext, continuation) {
+        value += Lad.getBonus();
+        continuation(value);
+    };
+
+    modifyTakenDamage(value, fromCard, gameContext, continuation) {
+        value -= Lad.getBonus();
+        continuation(value);
+    };
+    getDescriptions() {
+        if (Lad.prototype.hasOwnProperty('modifyDealedDamageToCreature') || Lad.prototype.hasOwnProperty('modifyTakenDamage')){
+            return [super.getDescriptions(),
+                "Чем их больше, тем они сильнее"];
+        }
+        return super.getDescriptions();
+    }
+}
+
 
 // Колода Шерифа, нижнего игрока.
 const seriffStartDeck = [
@@ -112,10 +156,8 @@ const seriffStartDeck = [
     new Gatling(),
     new Duck(),
     new Duck(),
-    new Duck(),
 ];
 const banditStartDeck = [
-    new Trasher(),
     new Dog(),
     new Dog(),
     new Gatling(),
