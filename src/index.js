@@ -14,6 +14,7 @@ class Creature extends Card {
             super.getDescriptions()];
     }
 }
+
 // Отвечает является ли карта уткой.
 function isDuck(card) {
     return card && card.quacks && card.swims;
@@ -60,20 +61,38 @@ class Duck extends Creature {
 class Dog extends Creature {
     constructor() {
         super("Пес-бандит", 3);
-
     }
 
 }
 
+class Trasher extends Dog {
+    constructor() {
+        super();
+        this.maxPower = 5;
+        this.currentPower = this.maxPower;
+        this.name = 'Громила';
+    }
+
+    modifyTakenDamage(value, fromCard, gameContext, continuation){
+        this.view.signalAbility(() => {
+            continuation(value - 1);
+        });
+    }
+
+    getDescriptions() {
+        return [super.getDescriptions(), "если Громилу атакуют, то он получает на 1 меньше урона."];
+    }
+}
 
 // Колода Шерифа, нижнего игрока.
 const seriffStartDeck = [
     new Duck(),
     new Duck(),
     new Duck(),
+    new Duck(),
 ];
 const banditStartDeck = [
-    new Dog(),
+    new Trasher(),
 ];
 
 
